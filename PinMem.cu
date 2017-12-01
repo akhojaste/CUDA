@@ -30,24 +30,6 @@
 
 const long VecSize = 256*256*256;
 
-// Matrices are stored in row-major order:
-// M(row, col) = *(M.elements + row * M.width + col)
-typedef struct {
-	int width;
-	int height;
-	float* elements;
-} Matrix;
-
-// Thread block size
-#define BLOCK_SIZE 16
-// Forward declaration of the matrix multiplication kernel
-
-__global__ void MatMulKernel(const Matrix, const Matrix, Matrix);
-// Matrix multiplication - Host code
-// Matrix dimensions are assumed to be multiples of BLOCK_SIZE
-
-void MatMul(const Matrix A, const Matrix B, Matrix C);
-
 void runMyTest();
 __global__ void
 vecAddGPU(double *pdbA, double *pdbB, double *pdbC)
