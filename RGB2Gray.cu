@@ -2,14 +2,48 @@
 
 void __global__ rgb2gray(const float *pfimagIn, float *pfimgOut, const int iWidth, const int iHeight);
 
+void ReadAndProcessImage();
 
 int main()
 {
-
   //Here we call the rgb2gray function
+  ReadAndProcessImage();
   
   std::cin.get();
 
+}
+
+void ReadAndProcessImage()
+{
+  int iWidth = 256;
+  int iHeight = 256;
+  
+  float *h_ImagIn = new float[iWidth * iHeight];
+  float *h_ImagOut = new float[iWidth * iHeight];
+  
+  //I need to get the values of the input filled with something
+  
+  float *d_ImagIn;
+  float *d_imagOut;
+  
+  //Allocate memory in GPU
+  cudaMemAlloc(d_ImagIn, iWidth * iHeight * sizeof(float));
+  cudaMemAlloc(d_ImagOut, iWidth * iHeight * sizeof(float));
+  
+  //Transfer data to GPU
+  cudaMemcpy(d_ImagIn, h_ImagIn, iWidth * iHeight * sizeof(float), cudaMemcpyHosttoDevice);
+  
+  //Compue the results in GPU
+  rgb2gray(d_ImagIn, d_ImgOut, iWidth, iHeight);
+  
+  //Transfer data back from GPU to CPU
+  cudaMemcpy(h_ImagOut, d_ImagOut, iWidth * iHeight * sizeof(float), cudaMemcpyDevicetoHost);
+  
+  delete pfImagIn;
+  delete pfImagOut;
+  
+  cudaFree(d_ImagIn);
+  cudaFree(d_ImagOut);
 }
 
 void __global__ rgb2gray(const float *pfimagIn, float *pfimgOut, const int iWidth, const int iHeight)
