@@ -31,13 +31,15 @@ void ReadAndProcessImage()
   cudaMemAlloc(d_ImagOut, iWidth * iHeight * sizeof(float));
   
   //Transfer data to GPU
-  cudaMemcpy(d_ImagIn, h_ImagIn, iWidth * iHeight * sizeof(float), cudaMemcpyHosttoDevice);
+  cudaMemcpy(d_ImagIn, h_ImagIn, iWidth * iHeight * sizeof(float), cudaMemcpyHostToDevice);
   
   //Compue the results in GPU
-  rgb2gray(d_ImagIn, d_ImgOut, iWidth, iHeight);
+  Dim3 GridOfBlocks(16, 16, 1);
+  Dim3 BlocksOfThreads(iWidth / 16, iHeight / 16, 1);
+  rgb2gray <<< GridOfBlocks, BlocksOfThreads>>>  (d_ImagIn, d_ImgOut, iWidth, iHeight);
   
   //Transfer data back from GPU to CPU
-  cudaMemcpy(h_ImagOut, d_ImagOut, iWidth * iHeight * sizeof(float), cudaMemcpyDevicetoHost);
+  cudaMemcpy(h_ImagOut, d_ImagOut, iWidth * iHeight * sizeof(float), cudaMemcpyDeviceToHost);
   
   delete pfImagIn;
   delete pfImagOut;
