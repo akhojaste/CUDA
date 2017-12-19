@@ -4,6 +4,8 @@ void __global__ rgb2gray(const float *pfimagIn, float *pfimgOut, const int iWidt
 
 void ReadAndProcessImage();
 
+#define BLOCK_SIZE 16
+
 int main()
 {
   //Here we call the rgb2gray function
@@ -34,9 +36,13 @@ void ReadAndProcessImage()
   cudaMemcpy(d_ImagIn, h_ImagIn, iWidth * iHeight * sizeof(float), cudaMemcpyHostToDevice);
   
   //Compue the results in GPU
-  Dim3 GridOfBlocks(16, 16, 1);
-  Dim3 BlocksOfThreads(iWidth / 16, iHeight / 16, 1);
-  rgb2gray <<< GridOfBlocks, BlocksOfThreads>>>  (d_ImagIn, d_ImgOut, iWidth, iHeight);
+  Dim3 dimBlocks(BLOCK_SIZE, BLOCK_SIZE); //  Each thread block contains this much threads
+  Dim3 dimGrid(iWidth / BLOCK_SIZE, iHeight / BLOCK_SIZE); // This amount of thread blocks
+  //Total number of threads that will be launched are dimGrid.x * dimGird.y * dimBlocks.x * dimBlocks.y
+  //NOTE: the toal numer of thread per block, i.e. dimBlock.x * dimBlock.y should not excede 1024 and
+  //in some system 512
+  
+  rgb2gray <<< dimGrid, dimBlocks>>>  (d_ImagIn, d_ImgOut, iWidth, iHeight);
   
   //Transfer data back from GPU to CPU
   cudaMemcpy(h_ImagOut, d_ImagOut, iWidth * iHeight * sizeof(float), cudaMemcpyDeviceToHost);
@@ -48,6 +54,7 @@ void ReadAndProcessImage()
   cudaFree(d_ImagOut);
 }
 
+//GPU Kernel
 void __global__ rgb2gray(const float *pfimagIn, float *pfimgOut, const int iWidth, const int iHeight)
 {
   
@@ -57,7 +64,7 @@ void __global__ rgb2gray(const float *pfimagIn, float *pfimgOut, const int iWidt
   float fPixel = pfImagIn[iRow * iWidth + iCol];
   fPixel = fPixel & (0x000000FF); // Just get the R value; image format is ARGB
 
-  float fPixelOut = fPixel & (fPixel << 8) & (fPixel << 16);;
+  float fPixelOut = fPixel & (fPixel << 8) & (fPixel << 16); //Gray scale so R = G = B
   fPixelOut = fPixelOut && 0x00000000; //No Transparency in Alpha channel;
   
   pfImageOut[iRow * iWidth + iCol] = fPixelOut;
