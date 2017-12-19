@@ -29,11 +29,11 @@ void ReadAndProcessImage()
   float *d_imagOut;
   
   //Allocate memory in GPU
-  cudaMemAlloc(d_ImagIn, iWidth * iHeight * sizeof(float));
-  cudaMemAlloc(d_ImagOut, iWidth * iHeight * sizeof(float));
+  cudaMalloc((void **) &d_ImagIn, iWidth * iHeight * sizeof(float));
+  cudaMalloc((void **) &d_ImagOut, iWidth * iHeight * sizeof(float));
   
   //Transfer data to GPU
-  cudaMemcpy(d_ImagIn, h_ImagIn, iWidth * iHeight * sizeof(float), cudaMemcpyHostToDevice);
+  cudaMemcpy((void *) &d_ImagIn, (void *) &h_ImagIn, iWidth * iHeight * sizeof(float), cudaMemcpyHostToDevice);
   
   //Compue the results in GPU
   Dim3 dimBlocks(BLOCK_SIZE, BLOCK_SIZE); //  Each thread block contains this much threads
@@ -45,7 +45,7 @@ void ReadAndProcessImage()
   rgb2gray <<< dimGrid, dimBlocks>>>  (d_ImagIn, d_ImgOut, iWidth, iHeight);
   
   //Transfer data back from GPU to CPU
-  cudaMemcpy(h_ImagOut, d_ImagOut, iWidth * iHeight * sizeof(float), cudaMemcpyDeviceToHost);
+  cudaMemcpy((void *) &h_ImagOut, (void *) &d_ImagOut, iWidth * iHeight * sizeof(float), cudaMemcpyDeviceToHost);
   
   delete pfImagIn;
   delete pfImagOut;
