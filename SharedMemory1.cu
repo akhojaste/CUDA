@@ -54,6 +54,52 @@ void MatMul(const Matrix A, const Matrix B, Matrix C);
 int main(int argc, char **argv)
 {
 	//Use the functions here
+	
+	Matrix A, B, C = {0};
+	
+	A.width = 16;
+	A.height = 16;
+	
+	B.width = 16;
+	B.height = 16;
+	
+	C.width = A.width;
+	C.height = B.hieght;
+	
+	A.elements = new float[A.width * A.height];
+	B.elements = new float[B.width * B.height];
+	C.elements = new float[C.width * C.height];
+	
+	for(int i =0; i < A.width * A.height; ++i)
+	{
+		A.elements[i] = i;
+	}
+	
+	
+	for(int i =0; i < B.width * B.height; ++i)
+	{
+		B.elements[i] = i;
+	}
+	
+	MatMul(A, B, C);
+	
+	//Print the result matrix
+	for(int i =0; i < C.width * C.height; ++i)
+	{
+		int row = i / C.width;
+		int col = i % C.width;
+		
+		std::cout << row << ", " << col << " :" C.elements[i];
+		
+		if(col == 0 && i != 0)
+		{
+			std::cout << endl;
+		}
+	}
+	
+	delete A.elements;
+	delete B.elements;
+	delete C.elements;
 
 	system("pause");
 }
