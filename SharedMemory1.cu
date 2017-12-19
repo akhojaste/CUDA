@@ -57,11 +57,11 @@ int main(int argc, char **argv)
 	
 	Matrix A, B, C = {0};
 	
-	A.width = 16;
-	A.height = 16;
+	A.width = 256;
+	A.height = 256;
 	
-	B.width = 16;
-	B.height = 16;
+	B.width = 256;
+	B.height = 256;
 	
 	C.width = A.width;
 	C.height = B.hieght;
