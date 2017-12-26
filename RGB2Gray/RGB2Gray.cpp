@@ -4,7 +4,6 @@
 //The GPU implementation is inside RGB2Gray.cu file
 extern "C"
 void ImageProcessingGPU();
-unsigned char* readBMP(const char* filename);
 
 int main()
 {
