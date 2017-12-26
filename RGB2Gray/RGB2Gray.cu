@@ -12,25 +12,14 @@
 #include <helper_cuda.h>
 #include <helper_functions.h> // helper functions for SDK examples
 
-extern "C"
-void RGB2GrayCPU(float *reference, float *idata, const unsigned int len);
-
 void __global__ rgb2gray(const float *pfimagIn, float *pfimgOut, const int iWidth, const int iHeight);
 
-void ReadAndProcessImage();
+extern "C"
+void ImageProcessingGPU();
 
 #define BLOCK_SIZE 16
 
-int main()
-{
-  //Here we call the rgb2gray function
-  ReadAndProcessImage();
-
-  std::cin.get();
-
-}
-
-void ReadAndProcessImage()
+void ImageProcessingGPU()
 {
   int iWidth = 256;
   int iHeight = 256;
