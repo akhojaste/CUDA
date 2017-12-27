@@ -8,65 +8,82 @@
 // includes CUDA
 #include <cuda_runtime.h>
 
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <iostream>
+#include <string>
+
 // includes, project
 #include <helper_cuda.h>
 #include <helper_functions.h> // helper functions for SDK examples
 
-void __global__ rgb2gray(const float *pfimagIn, float *pfimgOut, const int iWidth, const int iHeight);
+using namespace cv;
+
+void __global__ rgb2gray(const unsigned char *pfimagIn, unsigned char *pfimgOut, const int iWidth, const int iHeight, const int iChannels);
 
 extern "C"
-void ImageProcessingGPU();
+void ImageProcessingGPU(Mat image);
 
 #define BLOCK_SIZE 16
 
-void ImageProcessingGPU()
+void ImageProcessingGPU(Mat image)
 {
-  int iWidth = 256;
-  int iHeight = 256;
+  //Image dimensions and channels
+  int iWidth = image.cols;
+  int iHeight = image.rows;
+  int iCn = image.channels();
+
+  size_t count = iWidth * iHeight * iCn * sizeof(unsigned char);
+
+  //Input image is the one we read from file and want to change
+  unsigned char *h_ImagIn = image.data;
   
-  float *h_ImagIn = new float[iWidth * iHeight];
-  float *h_ImagOut = new float[iWidth * iHeight];
-  
-  //I need to get the values of the input filled with something
-  
-  float *d_ImagIn;
-  float *d_ImagOut;
+  unsigned char *d_ImagIn;
+  unsigned char *d_ImagOut;
   
   //Allocate memory in GPU
-  cudaMalloc((void **) &d_ImagIn, iWidth * iHeight * sizeof(float));
-  cudaMalloc((void **) &d_ImagOut, iWidth * iHeight * sizeof(float));
+  cudaError error = cudaSuccess;
+  error = cudaMalloc((void **)&d_ImagIn, count);
+  error = cudaMalloc((void **)&d_ImagOut, count);
   
+  //Test
+  //error = cudaMemset((void *)d_ImagOut, 255, count);
+
   //Transfer data to GPU
-  cudaMemcpy((void *) &d_ImagIn, (void *) &h_ImagIn, iWidth * iHeight * sizeof(float), cudaMemcpyHostToDevice);
+  error = cudaMemcpy((void *)d_ImagIn, (void *)h_ImagIn, count, cudaMemcpyHostToDevice);
   
   //Compue the results in GPU
-  dim3 dimBlocks(BLOCK_SIZE, BLOCK_SIZE); //  Each thread block contains this much threads
-  dim3 dimGrid(iWidth / BLOCK_SIZE, iHeight / BLOCK_SIZE); // This amount of thread blocks
+  dim3 dNumThreadsPerBlock(8,8); //  Each thread block contains this much threads
+  // This amount of thread blocks
   //Total number of threads that will be launched are dimGrid.x * dimGird.y * dimBlocks.x * dimBlocks.y
   //NOTE: the toal numer of thread per block, i.e. dimBlock.x * dimBlock.y should not excede 1024 and
   //in some system 512
+  dim3 dNumBlocks(iWidth / dNumThreadsPerBlock.x,  iHeight / dNumThreadsPerBlock.y); 
   
-  rgb2gray <<< dimGrid, dimBlocks>>>  (d_ImagIn, h_ImagOut, iWidth, iHeight);
+  rgb2gray <<< dNumBlocks, dNumThreadsPerBlock >>>  (d_ImagIn, d_ImagOut, iWidth, iHeight, iCn);
   
   //Transfer data back from GPU to CPU
-  cudaMemcpy((void *) &h_ImagOut, (void *) &d_ImagOut, iWidth * iHeight * sizeof(float), cudaMemcpyDeviceToHost);
+  error = cudaMemcpy((void *)h_ImagIn, (void *)d_ImagOut, count, cudaMemcpyDeviceToHost);
   
   cudaFree(d_ImagIn);
   cudaFree(d_ImagOut);
 }
 
 //GPU Kernel
-void __global__ rgb2gray(const float *pfimagIn, float *pfimgOut, const int iWidth, const int iHeight)
+void __global__ rgb2gray(const unsigned char *pfimagIn, unsigned char *pfimgOut, const int iWidth, const int iHeight, const int iChannels)
 {
-  
+
+  int iCol = blockIdx.x * blockDim.x + threadIdx.x;
   int iRow = blockIdx.y * blockDim.y + threadIdx.y;
-  int iCol = blockIdx.x + blockDim.x + threadIdx.x;
 
-  long lPixel = pfimagIn[iRow * iWidth + iCol];
-  lPixel = lPixel & (0x000000FF); // Just get the R value; image format is ARGB
+  long long lPixelIdx = (iRow * iWidth + iCol ) * iChannels; // The B value of the pixel
 
-  long lPixelOut = lPixel & (lPixel << 8) & (lPixel << 16); //Gray scale so R = G = B
-  lPixelOut = lPixelOut && 0x00000000; //No Transparency in Alpha channel;
-  
-  pfimgOut[iRow * iWidth + iCol] = lPixelOut;
+  unsigned char ucB = pfimagIn[lPixelIdx];
+  unsigned char ucG = pfimagIn[lPixelIdx + 1];
+  unsigned char ucR = pfimagIn[lPixelIdx + 2];
+
+ 
+  pfimgOut[lPixelIdx + 0] = (ucB + ucG + ucR) / 3;
+  pfimgOut[lPixelIdx + 1] = (ucB + ucG + ucR) / 3;
+  pfimgOut[lPixelIdx + 2] = (ucB + ucG + ucR) / 3;
 }
