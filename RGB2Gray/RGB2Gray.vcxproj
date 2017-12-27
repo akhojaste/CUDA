@@ -54,12 +54,12 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(CudaToolkitDir)/include;../../common/inc;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OPENCV_DIR)\..\..\include;$(CudaToolkitDir)/include;../../common/inc</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(CudaToolkitLibDir);</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;opencv_calib3d340d.lib;opencv_core340d.lib;opencv_cudaarithm340d.lib;opencv_cudabgsegm340d.lib;opencv_cudacodec340d.lib;opencv_cudafeatures2d340d.lib;opencv_cudafilters340d.lib;opencv_cudaimgproc340d.lib;opencv_cudalegacy340d.lib;opencv_cudaobjdetect340d.lib;opencv_cudaoptflow340d.lib;opencv_cudastereo340d.lib;opencv_cudawarping340d.lib;opencv_cudev340d.lib;opencv_dnn340d.lib;opencv_features2d340d.lib;opencv_flann340d.lib;opencv_highgui340d.lib;opencv_imgcodecs340d.lib;opencv_imgproc340d.lib;opencv_ml340d.lib;opencv_objdetect340d.lib;opencv_photo340d.lib;opencv_shape340d.lib;opencv_stitching340d.lib;opencv_superres340d.lib;opencv_video340d.lib;opencv_videoio340d.lib;opencv_videostab340d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CudaToolkitLibDir);$(OPENCV_DIR)\lib;</AdditionalLibraryDirectories>
       <OutputFile>$(OutDir)/RGB2Gray.exe</OutputFile>
     </Link>
     <CudaCompile>
