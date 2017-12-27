@@ -24,66 +24,74 @@ void __global__ rgb2gray(const unsigned char *pfimagIn, unsigned char *pfimgOut,
 extern "C"
 void ImageProcessingGPU(Mat image);
 
-#define BLOCK_SIZE 16
+#define BLOCK_SIZE 8
 
 void ImageProcessingGPU(Mat image)
 {
-  //Image dimensions and channels
-  int iWidth = image.cols;
-  int iHeight = image.rows;
-  int iCn = image.channels();
+	//Image dimensions and channels
+	int iWidth = image.cols;
+	int iHeight = image.rows;
+	int iCn = image.channels();
 
-  size_t count = iWidth * iHeight * iCn * sizeof(unsigned char);
+	//Total number of Bytes of the image
+	size_t count = iWidth * iHeight * iCn * sizeof(unsigned char);
 
-  //Input image is the one we read from file and want to change
-  unsigned char *h_ImagIn = image.data;
+	//Input image is the one we read from file and want to change
+	unsigned char *h_ImagIn = image.data;
   
-  unsigned char *d_ImagIn;
-  unsigned char *d_ImagOut;
+	//The buffers in the GPU 
+	unsigned char *d_ImagIn;
+	unsigned char *d_ImagOut;
   
-  //Allocate memory in GPU
-  cudaError error = cudaSuccess;
-  error = cudaMalloc((void **)&d_ImagIn, count);
-  error = cudaMalloc((void **)&d_ImagOut, count);
-  
-  //Test
-  //error = cudaMemset((void *)d_ImagOut, 255, count);
+	//Allocate memory in GPU
+	checkCudaErrors(cudaMalloc((void **)&d_ImagIn, count));
+	checkCudaErrors(cudaMalloc((void **)&d_ImagOut, count));
 
-  //Transfer data to GPU
-  error = cudaMemcpy((void *)d_ImagIn, (void *)h_ImagIn, count, cudaMemcpyHostToDevice);
+	//Test, pass this to the output to test if the cudamemcpy works
+	//error = cudaMemset((void *)d_ImagOut, 255, count);
+
+	//Transfer data to GPU
+	checkCudaErrors(cudaMemcpy((void *)d_ImagIn, (void *)h_ImagIn, count, cudaMemcpyHostToDevice));
   
-  //Compue the results in GPU
-  dim3 dNumThreadsPerBlock(8,8); //  Each thread block contains this much threads
-  // This amount of thread blocks
-  //Total number of threads that will be launched are dimGrid.x * dimGird.y * dimBlocks.x * dimBlocks.y
-  //NOTE: the toal numer of thread per block, i.e. dimBlock.x * dimBlock.y should not excede 1024 and
-  //in some system 512
-  dim3 dNumBlocks(iWidth / dNumThreadsPerBlock.x,  iHeight / dNumThreadsPerBlock.y); 
+	//Compue the results in GPU
+	dim3 dNumThreadsPerBlock(BLOCK_SIZE, BLOCK_SIZE); //  Each thread block contains this much threads
+	// This amount of thread blocks
+	//Total number of threads that will be launched are dimGrid.x * dimGird.y * dimBlocks.x * dimBlocks.y
+	//NOTE: the toal numer of thread per block, i.e. dimBlock.x * dimBlock.y should not excede 1024 and
+	//in some system 512
+	dim3 dNumBlocks(iWidth / dNumThreadsPerBlock.x,  iHeight / dNumThreadsPerBlock.y); 
   
-  rgb2gray <<< dNumBlocks, dNumThreadsPerBlock >>>  (d_ImagIn, d_ImagOut, iWidth, iHeight, iCn);
+	//GPU Kernel
+	rgb2gray <<< dNumBlocks, dNumThreadsPerBlock >>>  (d_ImagIn, d_ImagOut, iWidth, iHeight, iCn);
   
-  //Transfer data back from GPU to CPU
-  error = cudaMemcpy((void *)h_ImagIn, (void *)d_ImagOut, count, cudaMemcpyDeviceToHost);
-  
-  cudaFree(d_ImagIn);
-  cudaFree(d_ImagOut);
+	//Transfer data back from GPU to CPU
+	checkCudaErrors(cudaMemcpy((void *)h_ImagIn, (void *)d_ImagOut, count, cudaMemcpyDeviceToHost));
+
+	checkCudaErrors(cudaFree(d_ImagIn));
+	checkCudaErrors(cudaFree(d_ImagOut));
 }
 
 //GPU Kernel
 void __global__ rgb2gray(const unsigned char *pfimagIn, unsigned char *pfimgOut, const int iWidth, const int iHeight, const int iChannels)
 {
+	int iRow = blockIdx.y * blockDim.y + threadIdx.y;
+	int iCol = blockIdx.x * blockDim.x + threadIdx.x;
 
-  int iCol = blockIdx.x * blockDim.x + threadIdx.x;
-  int iRow = blockIdx.y * blockDim.y + threadIdx.y;
+	// The B value of the pixel, images in the OpenCV are in BGR format not RGB
+	long long lPixelIdx = (iRow * iWidth + iCol ) * iChannels; 
 
-  long long lPixelIdx = (iRow * iWidth + iCol ) * iChannels; // The B value of the pixel
+	unsigned char ucB = pfimagIn[lPixelIdx];
+	unsigned char ucG = pfimagIn[lPixelIdx + 1];
+	unsigned char ucR = pfimagIn[lPixelIdx + 2];
 
-  unsigned char ucB = pfimagIn[lPixelIdx];
-  unsigned char ucG = pfimagIn[lPixelIdx + 1];
-  unsigned char ucR = pfimagIn[lPixelIdx + 2];
+	//Weighted method or luminosity method. The controbution of each color
+	//to the final gray scale image is different. So if we take simply the
+	//average of RGB, i.e. (R + G + B) / 3, then the image has low contrast
+	//and it is mostly black
+	float temp = 0.11 * (float)ucB + 0.59 * (float)ucG + 0.3 * (float)ucR;
 
- 
-  pfimgOut[lPixelIdx + 0] = (ucB + ucG + ucR) / 3;
-  pfimgOut[lPixelIdx + 1] = (ucB + ucG + ucR) / 3;
-  pfimgOut[lPixelIdx + 2] = (ucB + ucG + ucR) / 3;
+	//Convert the RGB colorful image to the grayscale
+	pfimgOut[lPixelIdx + 0] = (unsigned char)temp;
+	pfimgOut[lPixelIdx + 1] = (unsigned char)temp;
+	pfimgOut[lPixelIdx + 2] = (unsigned char)temp;
 }
