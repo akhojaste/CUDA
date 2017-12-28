@@ -87,7 +87,7 @@ void __global__ rgb2gray(const unsigned char *pfimagIn, unsigned char *pfimgOut,
 	//Weighted method or luminosity method. The controbution of each color
 	//to the final gray scale image is different. So if we take simply the
 	//average of RGB, i.e. (R + G + B) / 3, then the image has low contrast
-	//and it is mostly black
+	//and it is mostly black. Also our eyes interpret different colors differently
 	float temp = 0.11 * (float)ucB + 0.59 * (float)ucG + 0.3 * (float)ucR;
 
 	//Convert the RGB colorful image to the grayscale

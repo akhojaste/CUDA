@@ -69,13 +69,15 @@ void ImageProcessingCPU(Mat image)
 		for (int j = 0; j < image.cols; ++j)
 		{
 			//Images in OpenCV are stored in the row order,i.e. row 1, row 2, ... .
-			unsigned char B = image.data[i * image.cols * iCn + j * iCn + 0];
-			unsigned char G = image.data[i * image.cols * iCn + j * iCn + 1];
-			unsigned char R = image.data[i * image.cols * iCn + j * iCn + 2];
+			unsigned char ucB = image.data[i * image.cols * iCn + j * iCn + 0];
+			unsigned char ucG = image.data[i * image.cols * iCn + j * iCn + 1];
+			unsigned char ucR = image.data[i * image.cols * iCn + j * iCn + 2];
 			
-			image.data[i * image.cols * iCn + j * iCn + 0] = (B + G + R) / 3;
-			image.data[i * image.cols * iCn + j * iCn + 1] = (B + G + R) / 3;
-			image.data[i * image.cols * iCn + j * iCn + 2] = (B + G + R) / 3;
+			float temp = 0.11 * (float)ucB + 0.59 * (float)ucG + 0.3 * (float)ucR;
+
+			image.data[i * image.cols * iCn + j * iCn + 0] = (unsigned char)temp;
+			image.data[i * image.cols * iCn + j * iCn + 1] = (unsigned char)temp;
+			image.data[i * image.cols * iCn + j * iCn + 2] = (unsigned char)temp;
 		}
 	}
 }
