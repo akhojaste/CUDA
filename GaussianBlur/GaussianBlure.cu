@@ -77,21 +77,52 @@ void __global__ rgb2gray(const unsigned char *pfimagIn, unsigned char *pfimgOut,
 	int iRow = blockIdx.y * blockDim.y + threadIdx.y;
 	int iCol = blockIdx.x * blockDim.x + threadIdx.x;
 
+	double dbFilterCoeff[9] = { -0.0833333333333333, -0.0833333333333333, -0.0833333333333333,
+								-0.0833333333333333, 1.66666666666667, -0.0833333333333333,
+								-0.0833333333333333, -0.0833333333333333, -0.0833333333333333 };
+
 	// The B value of the pixel, images in the OpenCV are in BGR format not RGB
-	long long lPixelIdx = (iRow * iWidth + iCol ) * iChannels; 
+	//long long lPixelIdx = (iRow * iWidth + iCol ) * iChannels; 
+	
+	short sFilterRow = 0;
+	short sFilterCol = 0;
 
-	unsigned char ucB = pfimagIn[lPixelIdx];
-	unsigned char ucG = pfimagIn[lPixelIdx + 1];
-	unsigned char ucR = pfimagIn[lPixelIdx + 2];
+	double dbFilterOutputB = 0.0;
+	double dbFilterOutputG = 0.0;
+	double dbFilterOutputR = 0.0;
 
-	//Weighted method or luminosity method. The controbution of each color
-	//to the final gray scale image is different. So if we take simply the
-	//average of RGB, i.e. (R + G + B) / 3, then the image has low contrast
-	//and it is mostly black
-	float temp = 0.11 * (float)ucB + 0.59 * (float)ucG + 0.3 * (float)ucR;
+	for (int iFilterCnt = 0; iFilterCnt < 9; ++iFilterCnt)
+	{
+		sFilterRow = iFilterCnt / 3;
+		sFilterCol = iFilterCnt / 3;
 
-	//Convert the RGB colorful image to the grayscale
-	pfimgOut[lPixelIdx + 0] = (unsigned char)temp;
-	pfimgOut[lPixelIdx + 1] = (unsigned char)temp;
-	pfimgOut[lPixelIdx + 2] = (unsigned char)temp;
+		int lImageRow = iRow + sFilterRow - 1;
+		int lImageCol = iCol + sFilterCol - 1;
+
+		if (lImageRow < 0 || lImageRow >= iHeight || lImageCol < 0 || lImageCol >= iWidth)
+			continue;
+
+		dbFilterOutputB += dbFilterCoeff[sFilterRow * 3 + sFilterCol] * (float)pfimagIn[lImageRow * iWidth * iChannels + lImageCol * iChannels];
+		dbFilterOutputG += dbFilterCoeff[sFilterRow * 3 + sFilterCol] * (float)pfimagIn[lImageRow * iWidth * iChannels + lImageCol * iChannels + 1];
+		dbFilterOutputR += dbFilterCoeff[sFilterRow * 3 + sFilterCol] * (float)pfimagIn[lImageRow * iWidth * iChannels + lImageCol * iChannels + 2];
+	}
+
+	if (dbFilterOutputB < 0.0)
+		dbFilterOutputB = 0.0;
+	else if (dbFilterOutputB >= 255.0)
+		dbFilterOutputB = 255.0;
+
+	if (dbFilterOutputG < 0.0)
+		dbFilterOutputG = 0.0;
+	else if (dbFilterOutputG >= 255.0)
+		dbFilterOutputG = 255.0;
+
+	if (dbFilterOutputR < 0.0)
+		dbFilterOutputR = 0.0;
+	else if (dbFilterOutputR >= 255.0)
+		dbFilterOutputR = 255.0;
+
+	pfimgOut[iRow * iWidth * iChannels + iCol * iChannels + 0] = dbFilterOutputB; //B
+	pfimgOut[iRow * iWidth * iChannels + iCol * iChannels + 1] = dbFilterOutputG; //G
+	pfimgOut[iRow * iWidth * iChannels + iCol * iChannels + 2] = dbFilterOutputR; //R
 }
