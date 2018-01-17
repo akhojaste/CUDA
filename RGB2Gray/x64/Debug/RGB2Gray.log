@@ -1,0 +1,5 @@
+﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(392,5): warning MSB8028: The intermediate directory (x64/Debug/) contains files shared from another project (template.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  RGB2Gray.cpp
+c:\users\amir\desktop\github\cuda\rgb2gray\rgb2gray.cpp(76): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  RGB2Gray.vcxproj -> C:\Users\amir\Desktop\Github\CUDA\RGB2Gray\bin/win64/Debug/RGB2Gray.exe
+  RGB2Gray.vcxproj -> bin/win64/Debug/RGB2Gray.pdb (Full PDB)

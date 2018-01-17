@@ -1,0 +1,8 @@
+﻿  Compiling CUDA source file RGB2Gray.cu...
+  
+  C:\Users\amir\Desktop\Github\CUDA\RGB2Gray>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v9.1\bin\nvcc.exe" -gencode=arch=compute_30,code=\"sm_30,compute_30\" -gencode=arch=compute_35,code=\"sm_35,compute_35\" -gencode=arch=compute_37,code=\"sm_37,compute_37\" -gencode=arch=compute_50,code=\"sm_50,compute_50\" -gencode=arch=compute_52,code=\"sm_52,compute_52\" -gencode=arch=compute_60,code=\"sm_60,compute_60\" -gencode=arch=compute_61,code=\"sm_61,compute_61\" -gencode=arch=compute_70,code=\"sm_70,compute_70\" --use-local-env --cl-version 2015 -ccbin "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64" -x cu  -I./ -I"C:/Users/amir/Desktop/CUDA/CUDA Samples/v9.1/common/inc" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v9.1\/include" -I../../common/inc -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v9.1\include"  -G   --keep-dir x64\Debug -maxrregcount=0  --machine 64 --compile -cudart static -Xcompiler "/wd 4819" -g   -DWIN32 -DWIN32 -D_MBCS -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /FS /Zi /RTC1 /MTd " -o x64/Debug/RGB2Gray.cu.obj "C:\Users\amir\Desktop\Github\CUDA\RGB2Gray\RGB2Gray.cu" 
+  RGB2Gray.cu
+  template_cpu.cpp
+     Creating library bin/win64/Debug/template.lib and object bin/win64/Debug/template.exp
+  template_vs2015.vcxproj -> C:\Users\amir\Desktop\Github\CUDA\RGB2Gray\bin/win64/Debug/template.exe
+  template_vs2015.vcxproj -> bin/win64/Debug/template.pdb (Full PDB)
