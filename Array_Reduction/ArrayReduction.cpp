@@ -8,11 +8,11 @@ void Array_Reduction(float *pData, unsigned int ArraySize, long &lSum);
 
 int main()
 {
-	unsigned int ArraySize = 10;
+	unsigned int ArraySize = 1024 * 1024;
 	float *pArray = new float[ArraySize];
 	for (int i = 0; i < ArraySize; ++i)
 	{
-		pArray[i] = i + 1;
+		pArray[i] = 2;
 	}
 
 	long lSum = 0;
