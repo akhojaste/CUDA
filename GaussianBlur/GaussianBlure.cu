@@ -19,7 +19,7 @@
 
 using namespace cv;
 
-void __global__ rgb2gray(const unsigned char *pfimagIn, unsigned char *pfimgOut, const int iWidth, const int iHeight, const int iChannels);
+void __global__ gaussianblure(const unsigned char *pfimagIn, unsigned char *pfimgOut, const int iWidth, const int iHeight, const int iChannels);
 
 extern "C"
 void ImageProcessingGPU(Mat image);
@@ -62,7 +62,7 @@ void ImageProcessingGPU(Mat image)
 	dim3 dNumBlocks(iWidth / dNumThreadsPerBlock.x,  iHeight / dNumThreadsPerBlock.y); 
   
 	//GPU Kernel
-	rgb2gray <<< dNumBlocks, dNumThreadsPerBlock >>>  (d_ImagIn, d_ImagOut, iWidth, iHeight, iCn);
+	gaussianblure <<< dNumBlocks, dNumThreadsPerBlock >>>  (d_ImagIn, d_ImagOut, iWidth, iHeight, iCn);
   
 	//Transfer data back from GPU to CPU
 	checkCudaErrors(cudaMemcpy((void *)h_ImagIn, (void *)d_ImagOut, count, cudaMemcpyDeviceToHost));
@@ -72,7 +72,7 @@ void ImageProcessingGPU(Mat image)
 }
 
 //GPU Kernel
-void __global__ rgb2gray(const unsigned char *pfimagIn, unsigned char *pfimgOut, const int iWidth, const int iHeight, const int iChannels)
+void __global__ gaussianblure(const unsigned char *pfimagIn, unsigned char *pfimgOut, const int iWidth, const int iHeight, const int iChannels)
 {
 	int iRow = blockIdx.y * blockDim.y + threadIdx.y;
 	int iCol = blockIdx.x * blockDim.x + threadIdx.x;
